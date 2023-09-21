@@ -3,7 +3,7 @@
 // reset the session's user when the user logs out.
 
 import { SessionData } from "express-session";
-import { UnauthenticatedError } from "./errors";
+import { BadValuesError, UnauthenticatedError } from "./errors";
 
 export type WebSessionDoc = SessionData;
 
@@ -28,6 +28,8 @@ export default class WebSessionConcept {
     // Hint: Take a look at how the "end" function makes sure the user is logged in. Keep in mind that a
     // synchronization like starting a session should just consist of a series of actions that may throw
     // exceptions and should not have its own control flow.
+    this.isInactive(session);
+    this.isValidUsername(username);
     session.user = username;
   }
 
@@ -46,6 +48,17 @@ export default class WebSessionConcept {
   isActive(session: WebSessionDoc) {
     if (session.user === undefined) {
       throw new UnauthenticatedError("Not logged in!");
+    }
+  }
+  isInactive(session: WebSessionDoc) {
+    if (session.user !== undefined) {
+      throw new UnauthenticatedError("User '" + session.user + "' is currently logged in!");
+      // Should this be a BadValuesError?
+    } 
+  }
+  isValidUsername(username: string) {
+    if (username == "") {
+      throw new BadValuesError("'" + username + "' is not a valid username.  Enter a value.");
     }
   }
 }
